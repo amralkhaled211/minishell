@@ -5,7 +5,7 @@ The current process's PID remains the same, but almost all other aspects are rep
 
 Here's a basic example in C that demonstrates the use of execve:
 */
-
+/* 
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -27,7 +27,60 @@ int main() {
     printf("After execve\n");
 
     return 0;
+} */
+
+
+//fork and execve in combination
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+int main() {
+    pid_t pid = fork();
+
+    if (pid == -1) {
+        // Fork failed
+        perror("fork");
+        return 1;
+    } else if (pid == 0) {
+        // Child process
+        char *const program = "/bin/ls";
+        char *const arguments[] = { "ls", "-l", NULL };
+        char *const environment[] = { NULL };
+        execve(program, arguments, environment); // Replace child process with ls command
+        perror("execvp"); // execvp only returns on error
+        return 1;
+    } else {
+        // Parent process
+        int status;
+        waitpid(pid, &status, 0); // Wait for the child process to finish
+        if (WIFEXITED(status)) {
+            printf("Child exited with status %d\n", WEXITSTATUS(status));
+        }
+    }
+
+    return 0;
 }
+
+/*
+envp
+When you execute a program, it inherits the environment variables from the process that executed it.
+This is true for most of the exec family of functions, like execvp, which inherit the environment of the calling process.
+However, execve is unique because it allows you to specify the environment for the new program explicitly.
+
+The envp parameter in execve is an array of strings, where each string is in the format key=value. Here's what it represents:
+
+key: This is the name of the environment variable.
+value: This is the value assigned to that environment variable.
+char *const envp[] = {
+    "PATH=/bin:/usr/bin",
+    "HOME=/home/username",
+    "MYVAR=myvalue",
+    NULL
+};
+
+*/
+
 
 
 /*
