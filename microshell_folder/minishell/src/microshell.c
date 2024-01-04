@@ -12,6 +12,7 @@ int main(int ac, char *av[], char *envp[])
 	while (1)
 	{
 		input = readline("microshell $ ");
+		//t_command_line *command_line = parse_input(input);
 		if (!input || strcmp(input, "exit") == 0) {
 			write(1, "exit\n", 6);
 			break;
