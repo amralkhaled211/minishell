@@ -6,73 +6,22 @@
 /*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/07 17:11:45 by aismaili          #+#    #+#             */
-/*   Updated: 2024/01/07 20:47:13 by aismaili         ###   ########.fr       */
+/*   Updated: 2024/01/16 17:08:55 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-# include <stdio.h>
-# include <stdlib.h>
-# include <unistd.h>
-# include <sys/types.h>
-# include <sys/wait.h>
-# include <readline/readline.h>
-# include <readline/history.h>
-# include <stdbool.h>
-# include "../../libft/libft.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <readline/readline.h>
+#include <readline/history.h>
+#include <stdbool.h>
+#include "../../libft/libft.h"
+#include "microshell.h"
 
-# define MAX_ARGS	128		// Maximum number of arguments
-# define MAX_CMD	128
-# define MAX_TOKENS	128
 
-typedef enum
-{
-	TOKEN_COMMAND,
-	TOKEN_ARG,
-	TOKEN_PIPE,			// |
-	TOKEN_REDIRECT_IN,	// <
-	TOKEN_REDIRECT_OUT,	// >
-	TOKEN_HEREDOC,		// <<
-	TOKEN_APPEND,		// >>
-	TOKEN_DOLLAR,
-	TOKEN_END			// End of input, value NULL
-}	e_types;
-
-typedef struct
-{
-	e_types	type;
-	char	*value;
-}	t_token;
-
-typedef struct s_redirection
-{
-	e_types	type;		// REDIRECT_IN, REDIRECT_OUT, REDIRECT_APPEND, or REDIRECT_HEREDOC
-	char	*file;		// Filename for redirection, or delimiter for here-document
-}	t_redirection;
-
-typedef struct s_command
-{
-	char			*cmd_name;			// first input and each after a pipe
-	char			*args[MAX_ARGS];	// Arguments array
-	t_redirection	*redirections;		// Array of redirections
-	bool			pipe_send;			//Pipes
-	bool			pipe_recieve;
-	int				num_args;			// Number of arguments
-	int				num_redirections;	// Number of redirections
-}   t_command;
-
-typedef struct s_shell
-{
-	t_command	command[MAX_CMD];	//second after tokens, use tokens to create the commands, and use them to create an AST, if necessary
-	t_token		token[MAX_TOKENS];	// first fill tokens, get num_of_tokens
-	int			num_of_commands;	//first token is a cmd and each after a Pipe, also
-}	t_shell;
-
-typedef struct s_ast_node
-{
-	char				*value;
-	struct s_ast_node	*left;
-	struct s_ast_node	*right;
-}	t_ast_node;
 
 /*
 		IDENTIFY ARGS
@@ -113,60 +62,70 @@ bool	identify_type_one(char *keyword, t_token *token)//Pipes and Redirections
 		return (assign_type(keyword, token, TOKEN_REDIRECT_OUT), true);
 	else if (ft_strncmp(keyword, "<", ft_strlen(keyword)))//infile: input will be read from the following file
 		return (assign_type(keyword, token, TOKEN_REDIRECT_IN), true);
-	else if (ft_strncmp(keyword, ">>", ft_strlen(keyword)))//append: do not delete exissting content in outfile, but add to it
+	else if (ft_strncmp(keyword, ">>", ft_strlen(keyword)))//append: do not delete existing content in outfile, but add to it
 		return (assign_type(keyword, token, TOKEN_APPEND), true);
-	else if (ft_strncmp(keyword, "<<", ft_strlen(keyword)))//heredoc: a delimiter will follow directly without any space in between
+	else if (ft_strncmp(keyword, "<<", ft_strlen(keyword)))//heredoc: a delimiter will follow directly with or without any space in between
 		return (assign_type(keyword, token, TOKEN_HEREDOC), true);
 	return (false);
 }
 
-char	*handle_dollar_sign(char *keyword, char *var)
+char	*handle_dollar_sign(char *keyword, t_shell *shell)
 {
-	int	i = 0;
-	int	j = 0;
+	int		i = 0;
+	int		j = 0;
+	char	var[MAX_VAR];//on stack
+	char	*value;//on stack
 
 	if (keyword[i++] == '$')
 	{
 		while (keyword[i])
 		{
-			if (keyword[i] == '{')
+			if (keyword[i] == '{')	// with {}: ${VAR}abc without: $VARabc; must distinguish
 			{
-				while (keyword[i] != '}')
+				i++;
+				while (keyword[i] != '}' && keyword[i] && j < MAX_VAR - 1)
 					var[j++] = keyword[i++];
+				if (keyword[i] == '}')
+				{
+					shell->flags.dollar_c_brack = true;
+					i++;
+				}
 			}
 			else
-				while (keyword[i])
+				while (keyword[i] && j < MAX_VAR - 1)
 					var[j++] = keyword[i++];
-			return (var);
+			value = getenv(var);
+			if (value)
+			return ();
 		}
 		return (NULL);
 	}
 	return (NULL);
 }
 
-e_types	handle_args(char *keyword, t_token *token)
+
+e_types	handle_args(char *keyword, t_shell *shell)
 {
-	int	i = 0;
-	char	*var;
+	int		i = 0;
+	int		j = 0;
+	char	*arg;
 
 	while (keyword[i])
 	{
-		var = handle_dollar_sign(keyword + i, var); //malloc for VAR without $
-		if (var)
-			assign_type(keyword + i, token, TOKEN_DOLLAR);
-		if (i != 0)//means there is some string before
-		
+		arg = handle_dollar_sign(keyword + i, shell); //malloc for VAR without $
+		if (arg)
+
+		arg[j++] = keyword[i++];
 
 	}
+	return (TOKEN_ARG);
 }
 
-
-bool	identify_type_two(char *keyword, t_token *token)//not by themselves, e.g. $, or " and ', looking for ARGS
+bool	identify_type_two(char *keyword, int i, t_shell *shell)
 {
 	//these are special cases, that can be found at beginning, end or in the middle of tokens
-	//if (ft_strncmp(keyword, "$")) // diff check for $, single and double quote
 	//if keyword[0] == '$' we are dealing with a Variable
-	return (assign_type(keyword, token, handle_args(keyword, token)), true);
+	return (assign_type(keyword, shell->token[i], handle_args(keyword, shell)), true);
 }
 
 /*
@@ -180,35 +139,38 @@ void	tokenize(char **input, t_shell *shell)//identify the type
 {
 	int	i = 0;
 
-	//assuming correct input; otherwise should be handled before: quotation cases, any other type, best a function to handle first splited;	
-	assing_type(input[i], &shell->token[i], TOKEN_COMMAND);//first input is a cmd, if correct input; test cases: first not a cmd/wrong input
-	if (shell->token[i - 1].type == TOKEN_PIPE)//check for previous type, if PIPE, this must be a cmd_name
-		assing_type(input[i], &shell->token[i], TOKEN_COMMAND);//first input is a cmd, if correct input; test cases: first not a cmd/wrong input
+	check_first(shell, input);
+	assing_type(input[i], &shell->token[i], TOKEN_COMMAND);
 	while (input[++i])
 	{
 		if (identify_type_one(input[i], &shell->token[i]))
 			continue;
-		identify_type_two(input[i], &shell->token[i]);
+		identify_type_two(input[i], i, shell);
+		if (i >= 2 && shell->token[i - 1].type == TOKEN_PIPE)//check for previous type, if PIPE, this must be a cmd_name
+			assing_type(input[i], &shell->token[i], TOKEN_COMMAND);
 	}
 }
 
-void	test_spliting(char **splited)
+void	check_first(t_shell *shell, char **input)
 {
-	int i = 0;
-	while (splited[i])
+	if (identify_type_one(input[0], &shell->token[0]))
 	{
-		printf("%i: %s\n", i+1, splited[i]);
-		i++;
+		if (shell->token->type == TOKEN_PIPE)
+			return ;//bash: syntax error near unexpected token `|'
+		else if (shell->token->type == TOKEN_REDIRECT_IN)
+		else if (shell->token->type == TOKEN_REDIRECT_OUT)
+		else if (shell->token->type == TOKEN_APPEND)
+		else if (shell->token->type == TOKEN_HEREDOC)
 	}
+	
 }
 
-int	main()
+int	main(void)
 {
-	t_shell		shell;
+	t_shell	shell;
 
 	char *input = readline("parseshell $ ");
-	char **splited = ft_split(input, ' ');//modify for more than just one char;
-	//test_spliting(splited);
+	char **splited = ft_split_bash(input, " \t");
 	tokenize(splited, &shell);
 }
 
@@ -238,4 +200,11 @@ int	main()
 		args: ["-l"]
 		pipe_from: true (indicating that the input is coming from a piped command)
 		redirect_out: outfile.txt (for the redirection > outfile.txt)
+*/
+
+/*
+	quotes must be removed when passed to execve, exept, when there is a \ before the quote
+	$ echo alksdf" lak\"jf"
+	alksdf lak"jf
+
 */

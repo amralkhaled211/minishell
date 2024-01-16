@@ -6,7 +6,7 @@
 /*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 15:00:17 by aismaili          #+#    #+#             */
-/*   Updated: 2024/01/15 18:28:20 by aismaili         ###   ########.fr       */
+/*   Updated: 2024/01/16 17:20:51 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,66 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <stdbool.h>
+#include "microshell.h"
+
+char	*ft_substr(char const *s, unsigned int start, size_t len);
+
+void	reset_split_var(t_split *split)
+{
+	split->a = 0;
+	split->i = 0;
+	split->arg_end = 0;
+	split->arg_start = 0;
+	split->in_quotes = false;
+	split->is_word = false;
+	split->q_start = 0;
+	split->quote_char = '\0';
+	split->result = NULL;
+	split->word_start = 0;
+	split->word_end = 0;
+}
+
+void	init_start_end(t_split *split, char *input, char *delimeter)
+{
+	if (split->in_quotes == false && split->i > 0 && !strchr(delimeter, input[split->i - 1]))
+	{
+		split->q_start = split->i;
+		while (split->q_start > 0 && !strchr(delimeter, input[split->q_start]))
+		{
+			split->q_start--;
+		}
+		split->arg_start = split->q_start;
+		split->q_start = split->i;
+	}
+	else if (split->in_quotes == false && split->i > 0 && strchr(delimeter, input[split->i - 1]))//delimeter before quote sign
+	{
+		split->q_start = split->i;
+		split->arg_start = split->i;
+	}
+}
+
+void	save_quote(t_split *split, char *input, char *delimeter)
+{
+	while (input[split->i] && !strchr(delimeter, input[split->i]))
+		split->i++;
+	split->arg_end = split->i--;
+	split->result[split->a++] = ft_substr(input, split->arg_start, (split->arg_end - split->arg_start));
+	split->is_word = false;
+}
+
+void	save_word(t_split *split, char *input, char *delimeter)
+{
+	if (split->is_word)
+	{
+		split->word_end = split->i - 1;
+		while (split->word_end >= 0 && !strchr(delimeter, input[split->word_end]))
+			split->word_end--;
+		split->word_start = split->word_end + 1;
+		split->word_end = split->i;
+		split->result[split->a++] = ft_substr(input, split->word_start, (split->word_end - split->word_start));
+		split->is_word = false;
+	}
+}
 
 char	*ft_substr(char const *s, unsigned int start, size_t len)
 {
@@ -46,139 +106,99 @@ char	*ft_substr(char const *s, unsigned int start, size_t len)
 	return ((char *)sub);
 }
 
- static size_t count_words(char const *s, char *delimeter)
+static size_t	count_words(char const *s, char *delimeter, t_split *split)
 {
 	size_t i = 0;
 	size_t count = 0;
-	size_t q_start = 0;
-	char quote_char = '\0';
-	bool in_quotes = false;
-	bool is_word = false; // Tracks if we're inside a word
 
 	while (s[i] != '\0')
 	{
-		if ((s[i] == '"' || s[i] == '\'') && (!in_quotes || quote_char == s[i]))
+		if ((s[i] == '"' || s[i] == '\'') && (!split->in_quotes || split->quote_char == s[i]))
 		{
-			if (in_quotes == false && i > 0 && strchr(delimeter, s[i - 1]))//s[i - 1] != c
-				q_start = i;
-			in_quotes = !in_quotes;
-			if (in_quotes)
-				quote_char = s[i];
+			if (split->in_quotes == false && i > 0 && strchr(delimeter, s[i - 1]))
+				split->q_start = i;
+			split->in_quotes = !split->in_quotes;
+			if (split->in_quotes)
+				split->quote_char = s[i];
 			else
-				quote_char = '\0';
-			//quote_char = in_quotes ? s[i] : '\0';
-			if (!in_quotes && q_start > 0 && strchr(delimeter, s[q_start - 1]))
+				split->quote_char = '\0';
+			if (!split->in_quotes && split->q_start > 0 && strchr(delimeter, s[split->q_start - 1]))
 			{
-				count++; // Count the quoted string as one word
-				is_word = false;
+				count++;
+				split->is_word = false;
 			}
 			i++;
 		}
-		else if (strchr(delimeter, s[i]) && !in_quotes)//s[i] == c
+		else if (strchr(delimeter, s[i]) && !split->in_quotes)
 		{
-			if (is_word)
+			if (split->is_word)
 			{
-				count++; // Count as a word
-				is_word = false;
+				count++;
+				split->is_word = false;
 			}
 			i++;
 		}
 		else
 		{
-			is_word = true;
+			split->is_word = true;
 			i++;
 		}
 	}
-	if (is_word || in_quotes)// If we end on a word or inside quotes
+	if (split->is_word || split->in_quotes)// If we end on a word or inside quotes
 		count++;
 	return (count);
 }
 
-/* int main()
-{
-   printf("%zu\n", count_words("        \"   \"  ", " "));
-} */
-
 char	**ft_split_bash(char *input, char *delimeter)
 {
-	//variables
-	char	**result;
-	size_t	a = 0;
-	size_t	i = 0;
-	size_t	num_words;
-	size_t	q_start = 0;
-	size_t	arg_start = 0;
-	size_t	arg_end = 0;
-	size_t  word_start = 0;
-	size_t	word_end = 0;
-	char quote_char = '\0';
-	bool in_quotes = false;
-	bool is_word = false; // Tracks if we're inside a word
+	t_split	split;
 
-	num_words = count_words(input, delimeter);
-	if (!num_words)
+	reset_split_var(&split);
+	split.num_words = count_words(input, delimeter, &split);
+	if (!split.num_words)
 		return (NULL);
-	result = malloc(sizeof(char *) * (num_words + 1));
-	if (!result)
+	reset_split_var(&split);
+	split.result = malloc(sizeof(char *) * (split.num_words + 1));
+	if (!split.result)
 		return (NULL);
-	while (input[i])
+	while (input[split.i])
 	{
-		if ((input[i] == '"' || input[i] == '\'') && (!in_quotes || quote_char == input[i]))
+		if ((input[split.i] == '"' || input[split.i] == '\'') && (!split.in_quotes || split.quote_char == input[split.i]))
 		{
-			if (in_quotes == false && i > 0 && !strchr(delimeter, input[i - 1]))
-			{
-				//get q_start and arg_start
-				q_start = i;
-				while (q_start >= 0 && !strchr(delimeter, input[q_start]))
-				{
-					q_start--;
-				}
-				arg_start = q_start;
-				q_start = i;
-			}	
-			in_quotes = !in_quotes;
-			if (in_quotes)
-				quote_char = input[i];
+			init_start_end(&split, input, delimeter);
+			split.in_quotes = !split.in_quotes;
+			if (split.in_quotes)
+				split.quote_char = input[split.i];
 			else
-				quote_char = '\0';
-			if (!in_quotes)
-			{
-				while (input[i] && !strchr(delimeter, input[i]))
-					i++;
-				arg_end = i--;
-				result[a++] = ft_substr(input, arg_start, (arg_end - arg_start));
-				is_word = false;
-			}
-			i++;
+				split.quote_char = '\0';
+			if (!split.in_quotes)
+				save_quote(&split, input, delimeter);
+			split.i++;
 		}
-		else if (strchr(delimeter, input[i]) && !in_quotes)
+		else if ((strchr(delimeter, input[split.i]) || input[split.i] == 0) && !split.in_quotes)
 		{
-			if (is_word)
-			{
-				word_end = i - 1;
-				while (word_end >= 0 && !strchr(delimeter, input[word_end]))
-					word_end--;
-				word_start = word_end + 1;
-				word_end = i;
-				result[a++] = ft_substr(input, word_start, (word_end - word_start));
-				//printf("%s\nword_start: %zu\nword_end: %zu\n", result[a-1], word_start, word_end);
-				is_word = false;
-			}
-			i++;
+			save_word(&split, input, delimeter);
+			split.i++;
 		}
 		else
 		{
-			is_word = true;
-			i++;
+			split.is_word = true;
+			split.i++;
 		}
 	}
-	result[a] = NULL;
-	return (result);
+	if (split.in_quotes)
+		save_quote(&split, input, delimeter);
+	else if (input[split.i] == 0 && !strchr(delimeter, input[split.i - 1]) && !split.in_quotes)
+		save_word(&split, input, delimeter);
+	split.result[split.a] = NULL;
+	return (split.result);
 }
 
-int main()
+int main(int ac, char *av[])
 {
-    char **result = ft_split_bash("ls -l", " ");
+	(void)ac;
+	//char *input = readline("$ ");
+    char **result = ft_split_bash("ab\"-l\" | wc -l", " ");
     int i = 0;
     while (result[i])
     {
