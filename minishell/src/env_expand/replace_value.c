@@ -56,7 +56,7 @@ char	*delete_and_replace(t_token *token, char *value, char *str, int ind, int i)
 	int	len;
 	char *new;
 
-	len = (ft_strlen(value) - var_len(value + ind) + ft_strlen(str));
+	len = (ft_strlen(str) - var_len(str + ind) + ft_strlen(value));
 	new = get_value_to_str(str, value, len, ind);//
 	//printf("in DELETE and REPLACE: \nstr: %s\nvalue: %s\nnew: %s\nind: %i\nlen: %i\n", str, value, new, ind, len);
 	if (token)

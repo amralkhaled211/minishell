@@ -20,15 +20,6 @@ bool	is_var_compliant(char c)
 		return (true);
 }
 
-void	free_ptr(void *ptr)
-{
-	if (ptr != NULL)
-	{
-		free(ptr);
-		ptr = NULL;
-	}
-}
-
 int var_len(char *str)
 {
 	int		i;
