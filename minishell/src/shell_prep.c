@@ -6,7 +6,7 @@
 /*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/28 16:12:18 by aismaili          #+#    #+#             */
-/*   Updated: 2024/02/03 20:57:40 by aismaili         ###   ########.fr       */
+/*   Updated: 2024/02/10 19:27:51 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,17 @@ void	init_all_shell(t_shell *shell)
 		shell->token[i].type = TOKEN_DEFAULT;
 		shell->token[i].value = NULL;
 	}
+	init_flags(&shell->flags);
+	shell->stdin_backup = -1;
+	shell->stdout_backup = -1;
 	shell->syntax_check = 0;
+}
+
+void	init_flags(t_flags *flags)
+{
+	flags->cmd_flag = false;
+	flags->found_in = false;
+	flags->found_out = false;
 }
 
 void	copy_env(char **envp, t_shell *shell)

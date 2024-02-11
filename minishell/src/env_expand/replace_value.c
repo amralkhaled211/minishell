@@ -6,7 +6,7 @@
 /*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/31 14:38:14 by amalkhal          #+#    #+#             */
-/*   Updated: 2024/02/03 19:06:42 by aismaili         ###   ########.fr       */
+/*   Updated: 2024/02/11 18:25:41 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ static void	copy_value(char *new, char *value, int *j)
 	}
 }
 
-static char	*get_value_to_str(char *old_str, char *value, int len, int ind)
+char	*get_value_to_str(char *old_str, char *value, int len, int ind)//protect
 {
 	int		i;
 	int		j;
@@ -51,7 +51,7 @@ static char	*get_value_to_str(char *old_str, char *value, int len, int ind)
 	return (new);
 }
 
-char	*delete_and_replace(t_token *token, char *value, char *str, int ind, int i)
+char	*delete_and_replace(t_token *token, char *value, char *str, int ind, int i)//protect
 {
 	int	len;
 	char *new;

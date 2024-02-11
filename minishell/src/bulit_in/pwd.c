@@ -1,43 +1,34 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   utils_expand.c                                     :+:      :+:    :+:   */
+/*   pwd.c                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/01/31 14:43:46 by amalkhal          #+#    #+#             */
-/*   Updated: 2024/02/04 15:39:22 by aismaili         ###   ########.fr       */
+/*   Created: 2024/01/31 15:16:26 by amalkhal          #+#    #+#             */
+/*   Updated: 2024/02/07 18:07:27 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../microshell.h"
 
-bool	is_var_compliant(char c)
+int	pwd(t_shell *shell)
 {
-	if (ft_isalnum(c) == 0 && c != '_')
-		return (false);
-	else
-		return (true);
-}
+	char	buffer[4096];
+	char	*cwd;
 
-int var_len(char *str)
-{
-	int		i;
-	int		count;
-
-	count = 0;
-	i = 0;
-	if (str[i] != '$')
-		i++;
-	i++;
-	if ((str[i] >= '0' && str[i] <= '9') || str[i] == '?')
-		return (count + 1);
-	while (str[i])
+	(void)shell;
+	/* if (shell->current_dir)
 	{
-		if (is_var_compliant(str[i]) == false)
-			break ;
-		count++;
-		i++;
+		ft_putendl_fd(shell->current_dir, 1);
+		return (0);
+	} */
+	cwd = getcwd(buffer, 4096);
+	if (cwd)
+	{
+		ft_putendl_fd(cwd, 1);
+		return(0);
 	}
-	return (count);
+	ft_putendl_fd("PWD FAILED", 2);
+	return(1);
 }

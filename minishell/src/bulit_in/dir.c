@@ -1,43 +1,39 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   utils_expand.c                                     :+:      :+:    :+:   */
+/*   dir.c                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/01/31 14:43:46 by amalkhal          #+#    #+#             */
-/*   Updated: 2024/02/04 15:39:22 by aismaili         ###   ########.fr       */
+/*   Created: 2024/01/31 16:11:20 by amalkhal          #+#    #+#             */
+/*   Updated: 2024/02/07 18:06:34 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../microshell.h"
+#include <limits.h>
 
-bool	is_var_compliant(char c)
+/* bool	init_dir(t_shell *shell)
 {
-	if (ft_isalnum(c) == 0 && c != '_')
+	char	buff[PATH_MAX];
+	char	*wd;
+
+	wd = getcwd(buff, PATH_MAX);
+	shell->current_dir = ft_strdup(wd);
+	if (!shell->current_dir)
 		return (false);
-	else
-		return (true);
-}
-
-int var_len(char *str)
-{
-	int		i;
-	int		count;
-
-	count = 0;
-	i = 0;
-	if (str[i] != '$')
-		i++;
-	i++;
-	if ((str[i] >= '0' && str[i] <= '9') || str[i] == '?')
-		return (count + 1);
-	while (str[i])
+	if (get_var_ind(shell->env, "OLDPWD") != -1)
 	{
-		if (is_var_compliant(str[i]) == false)
-			break ;
-		count++;
-		i++;
+		shell->old_dir = ft_strdup(get_env_var_value(shell->env,
+					"OLDPWD"));
+		if (!shell->old_dir)
+			return (false);
 	}
-	return (count);
-}
+	else
+	{
+		shell->old_dir = ft_strdup(wd);
+		if (!shell->old_dir)
+			return (false);
+	}
+	return (true);
+} */

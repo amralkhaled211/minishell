@@ -6,7 +6,7 @@
 /*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/24 17:10:54 by aismaili          #+#    #+#             */
-/*   Updated: 2024/02/02 16:25:25 by aismaili         ###   ########.fr       */
+/*   Updated: 2024/02/04 21:53:15 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ int	token_simple(char **result, t_shell *shell)
 	i = 0;
 	while (result[i])
 	{
-		printf("++++in token_simple\n++++result[%i]: %s\n", i, result[i]);
+		//printf("++++in token_simple\n++++result[%i]: %s\n", i, result[i]);
 		if (!is_closed_quote(result[i]))
 		{
 			ft_putendl_fd("minishell: warning: unclosed quotes", 2);

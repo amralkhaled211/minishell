@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   change_to_value.c                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amalkhal <amalkhal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/30 18:02:33 by amalkhal          #+#    #+#             */
-/*   Updated: 2024/02/03 15:23:59 by amalkhal         ###   ########.fr       */
+/*   Updated: 2024/02/10 15:25:23 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../microshell.h"
 
-static int	delete_var(t_token *token, char *var, int ind, int x)
+static int	delete_var(t_token *token, char *var, int ind, int x)//protect
 {
 	int		i;
 	int	 	j;
@@ -45,8 +45,6 @@ int		change_var_to_val(t_token *token, char *value, int ind, int i)
 {
 	if(value == NULL)
 	{
-			//token[i].amb_redir = true;
-			//return (1);
 		if (delete_var(token, token[i].value, ind, i) == 1)
 		{
 			free(value);

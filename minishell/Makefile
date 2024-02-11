@@ -22,6 +22,20 @@ SRCS =  $(SRC_DIR)/microshell.c \
 		$(SRC_DIR)/env_expand/replace_value.c \
 		$(SRC_DIR)/env_expand/utils_expand.c \
 		$(SRC_DIR)/env_expand/var_validtion.c \
+		$(SRC_DIR)/handle_path.c \
+		$(SRC_DIR)/bulit_in/dir.c \
+		$(SRC_DIR)/bulit_in/echo.c \
+		$(SRC_DIR)/bulit_in/env_utils.c \
+		$(SRC_DIR)/bulit_in/env_utils2.c \
+		$(SRC_DIR)/bulit_in/env.c \
+		$(SRC_DIR)/bulit_in/export.c \
+		$(SRC_DIR)/bulit_in/pwd.c \
+		$(SRC_DIR)/bulit_in/unset.c \
+		$(SRC_DIR)/begin_execution.c \
+		$(SRC_DIR)/setup_redir.c \
+		$(SRC_DIR)/handle_external.c \
+		$(SRC_DIR)/here_doc/make_doc.c \
+		$(SRC_DIR)/here_doc/expand_doc.c \
 
 
 OBJS = $(SRCS:.c=.o)

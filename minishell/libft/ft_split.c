@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_split.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aismaili <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/19 11:37:20 by aismaili          #+#    #+#             */
-/*   Updated: 2023/09/19 11:38:07 by aismaili         ###   ########.fr       */
+/*   Updated: 2024/02/11 12:25:45 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,8 @@ static size_t	count_words(char const *s, char c)
 
 	i = 0;
 	j = 0;
+	if (!s)
+		return (0);
 	while (s[i] != '\0')
 	{
 		while (s[i] == c)

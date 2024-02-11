@@ -6,7 +6,7 @@
 /*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/27 17:03:26 by aismaili          #+#    #+#             */
-/*   Updated: 2024/02/04 11:26:47 by aismaili         ###   ########.fr       */
+/*   Updated: 2024/02/11 12:09:29 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,8 +19,13 @@ void	free_str_array(char **array)
 	int	i;
 
 	i = -1;
+	//printf("in free_str_array:\n");
 	while (array[++i])
+	{
+		//printf("array[%i]: %s\n", i, array[i]);
 		free(array[i]);
+		array[i] = NULL;
+	}
 	free(array);
 }
 
@@ -28,9 +33,12 @@ void	free_token_array(t_token *token)
 {
 	int	i;
 
-	i = 0;
-	while (token[i].type != TOKEN_END)
-		free(token[i++].value);
+	i = -1;
+	while (token[++i].type != TOKEN_END)
+	{
+		free(token[i].value);
+		token[i].value = NULL;
+	}
 }
 
 void	free_cmd_table(t_shell *shell, t_command *command)
@@ -45,14 +53,33 @@ void	free_cmd_table(t_shell *shell, t_command *command)
 		if (command[i].cmd_name)
 			free(command[i].cmd_name);
 		j = -1;
-		while (command[i].args[++j] && j < MAX_ARGS)
+		while (command[i].args[++j])
 			free(command[i].args[j]);
 		j = -1;
-		while (command[i].redirections[++j].file && j < MAX_REDIR)
+		while (command[i].redirections[++j].file)
+		{
 			free(command[i].redirections[j].file);
+			if (command[i].redirections[j].input_fd != -1)
+				close(command[i].redirections[j].input_fd);
+				//printf("command[i].redirections[j].input_fd : %i\n", command[i].redirections[j].input_fd);
+			if (command[i].redirections[j].output_fd != -1)
+				close(command[i].redirections[j].output_fd);
+			//printf("command[i].redirections[j].output_fd : %i\n", command[i].redirections[j].output_fd);
+		}
+		if (command[i].path)
+			free(command[i].path);
+		if (command[i].cmd_args)
+			free(command[i].cmd_args);
 	}
 	free(command);
 }
+
+		/* if (command[i].last_in.file) //not needed since we don't malloc for it
+			free_io_redir(&command[i]); */
+/* void	free_io_redir(t_command *command)//no need since we don't allocate new for it
+{
+	
+} */
 
 void	free_after_syntax_error(t_shell *shell, int stage)//no exit here
 {
@@ -63,6 +90,7 @@ void	free_after_syntax_error(t_shell *shell, int stage)//no exit here
 	}
 	else if (stage == 2)
 	{
+		//printf("ABOUT TO FREE IN STAGE 2/PREP FOR NEXT CMD\n");
 		free_str_array(shell->splited);//splited array
 		free_token_array(shell->token);//token array
 		free_cmd_table(shell, shell->command);//command struct
@@ -112,7 +140,7 @@ void	free_after_malloc_fail(t_shell *shell, int f, int stage)
 	int	i;
 
 	i = 0;
-	perror("malloc failed");
+	//perror("malloc failed");
 	if (stage == 1)//token_simple
 	{
 		//free token until malloc failed
@@ -124,6 +152,8 @@ void	free_after_malloc_fail(t_shell *shell, int f, int stage)
 	if (stage == 2)//expander
 	{
 		free_str_array(shell->env);
+		free_str_array(shell->splited);
+		free_token_array(shell->token);//token array
 		//clean expander section
 	}
 	if (stage == 3)//token_advanced
@@ -134,7 +164,7 @@ void	free_after_malloc_fail(t_shell *shell, int f, int stage)
 		//free cmd_table until allocated
 		free_cmd_table(shell, shell->command);
 	}
-	if (stage == 4)//remove_quotes
+	if (stage == 4)//remove_quotes & create_args & handle path
 	{
 		free_str_array(shell->splited);
 		free_str_array(shell->env);
@@ -150,9 +180,8 @@ void	free_after_malloc_fail(t_shell *shell, int f, int stage)
 void	free_before_exit(t_shell *shell)
 {
 		free_str_array(shell->env);
-		free_token_array(shell->token);//token array
-		//free cmd_table until allocated
-		free_cmd_table(shell, shell->command);
+		//free_token_array(shell->token);//token array
+		//free_cmd_table(shell, shell->command);
 }
 
 /*

@@ -6,7 +6,7 @@
 /*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/15 15:00:17 by aismaili          #+#    #+#             */
-/*   Updated: 2024/02/02 16:22:07 by aismaili         ###   ########.fr       */
+/*   Updated: 2024/02/09 15:10:43 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,15 +42,21 @@ int	ft_get_redir(char *input, int i, t_split *split)
 	(void)split;
 	if (input[i] == '<') // redirect input
 	{
+		//printf("input[%i]: %c\n", i, input[i]);
 		if (input[i + 1] == '<') // Here doc
+		{
+			//printf("input[%i]: %c and input[%i]: %c \n", i, input[i], i + 1, input[i+1]);
 			return (2);
-		return (1);
+		}
+		else
+			return (1);
 	}
 	else if (input[i] == '>') // redirect output
 	{
 		if (input[i + 1] == '>') // Append
 			return (2);
-		return (1);
+		else
+			return (1);
 	}
 	return (0);
 }
@@ -59,9 +65,20 @@ int	is_op_special(char *input, int i, t_split *split)
 {
 	if (input[i] == '|')
 		return (1);
-	if (ft_get_redir(input, i, split) == 1)
+	/* else if (input[i] == '<' && input[i - 1] == '<')//<, >, <<, >>
 		return (2);
-	if (ft_get_redir(input, i, split) == 2)
+	else if (input[i] == '>' && input[i - 1] == '>')
+		return (3);
+	else if (input[i] == '<' && input[i - 1] != '<')
+		return (4);
+	else if (input[i] == '>' && input[i - 1] != '>')
+		return (5); */
+		
+	/*else if (ft_get_redir(input, i - 1, split) == 2)
+		return (0); */
+	 else if (ft_get_redir(input, i, split) == 1)
+		return (2);
+	else if (ft_get_redir(input, i, split) == 2)
 		return (3);
 	return (0);
 }
@@ -77,7 +94,7 @@ void	init_start_end(t_split *split, char *input, char *delimeter)
 				break ;
 			split->q_start--;
 		}
-		split->arg_start = split->q_start;
+		split->arg_start = split->q_start + 1;
 		split->q_start = split->i;
 	}
 	else if (!split->in_quotes && split->i > 0 && (strchr(delimeter, input[split->i - 1]) || is_op_special(input, split->i - 1, split)) && !split->flag)//delimeter before quote sign
@@ -118,6 +135,26 @@ int	save_quote(t_split *split, char *input, char *delimeter)
 	return (0);
 }
 
+int	ft_get_redir_edge(char *input, int i, t_split *split)
+{
+	(void)split;
+	if (input[i] == '<') // redirect input
+	{
+		if (input[i - 1] == '<') // Here doc
+			return (2);
+		else
+			return (1);
+	}
+	else if (input[i] == '>') // redirect output
+	{
+		if (input[i - 1] == '>') // Append
+			return (2);
+		else
+			return (1);
+	}
+	return (0);
+}
+
 int	save_word(t_split *split, char *input, char *delimeter)
 {
 	if (split->is_word)
@@ -129,9 +166,13 @@ int	save_word(t_split *split, char *input, char *delimeter)
 				break ;
 			split->word_end--;
 		}
-		split->word_start = split->word_end + 1;
+		if (ft_get_redir_edge(input, split->i - 1, split) == 2)
+			split->word_start = split->word_end - 1;
+		else
+			split->word_start = split->word_end + 1;
 		split->word_end = split->i;
-		split->result[split->a++] = ft_substr(input, split->word_start, (split->word_end - split->word_start));
+		split->result[split->a] = ft_substr(input, split->word_start, (split->word_end - split->word_start));
+		split->a++;
 		if (!split->result[split->a - 1])
 		{
 			//free
@@ -142,33 +183,6 @@ int	save_word(t_split *split, char *input, char *delimeter)
 	}
 	return (0);
 }
-
-/* char	*ft_substr(char const *s, unsigned int start, size_t len)
-{
-	size_t			i;
-	size_t			b;
-	unsigned char	*sub;
-
-	i = 0;
-	b = 0;
-	if (s == NULL)
-		return (NULL);
-	if (len > strlen(s) - start)
-		len = strlen(s) - start;
-	if (start > strlen(s))
-		len = 0;
-	sub = malloc(((len + 1) * sizeof(char)));
-	if (sub == NULL)
-		return (NULL);
-	while (s[i])
-	{
-		if (i >= start && b < len)
-			sub[b++] = s[i];
-		i++;
-	}
-	sub[b] = '\0';
-	return ((char *)sub);
-} */
 
 int	pipe_special(int *count, char *delimeter, char *s, int i)
 {
@@ -226,6 +240,13 @@ size_t	count_words(char *s, char *delimeter, t_split *split)
 				split->is_word = false;
 			}
 			i++;
+		}
+		else if (i == 0 && (s[i] == '|' || ft_get_redir(s, i, split)))
+		{
+			count++;
+			i++;
+			if (ft_get_redir(s, i, split) == 2)
+				i++;
 		}
 		else if (i > 0 && s[i] == '|' && (!strchr(delimeter, s[i - 1]) || !strchr(delimeter, s[i + 1])) && !split->in_quotes)//ignore if stand alone '|'
 			i = pipe_special(&count, delimeter, s, i);
@@ -286,19 +307,32 @@ int	ft_appdoc_special(char *input, char *delimeter, t_split *split)
 	return (split->i);
 }
 
+void	init_res(t_split *split)
+{
+	int	i;
+
+	i = 0;
+	while (i < split->num_words)
+	{
+		split->result[i] = NULL;
+		i++;
+	}
+}
+
 char	**ft_split_bash(char *input, char *delimeter)
 {
 	t_split	split;
 
 	reset_split_var(&split);
 	split.num_words = count_words(input, delimeter, &split);
-	printf("%d\n", split.num_words);
+	//printf("num of words for split: %d\n", split.num_words);
 	if (!split.num_words)
 		return (NULL);
 	reset_split_var(&split);
 	split.result = malloc(sizeof(char *) * (split.num_words + 1));
 	if (!split.result)
 		return (NULL);
+	init_res(&split);
 	while (input[split.i])
 	{
 		if ((input[split.i] == '"' || input[split.i] == '\'' || split.flag == 2) && (!split.in_quotes || split.quote_char == input[split.i] || split.flag))
@@ -318,12 +352,18 @@ char	**ft_split_bash(char *input, char *delimeter)
 				return (NULL);
 			split.i++;
 		}
-		else if (input[split.i] == '|' && (!strchr(delimeter, input[split.i - 1]) || !strchr(delimeter, input[split.i + 1])) && !split.in_quotes)//ignore if stand alone '|'
+		else if (split.i == 0 && input[split.i] == '|' && !strchr(delimeter, input[split.i + 1]) && !split.in_quotes)
 			split.i = ft_pipe_special(input, delimeter, &split);
-		else if ((ft_get_redir(input, split.i, &split) == 1) && (!strchr(delimeter, input[split.i - 1]) || !strchr(delimeter, input[split.i + 1])) && !split.in_quotes)//ignore the stand alone '<'
+		else if (split.i == 0 && (ft_get_redir(input, split.i, &split) == 1) && !strchr(delimeter, input[split.i + 1]) && !split.in_quotes)
 			split.i = ft_redir_special(input, delimeter, &split);
-		else if ((ft_get_redir(input, split.i, &split) == 2) && (!strchr(delimeter, input[split.i - 1]) || !strchr(delimeter, input[split.i + 2])) && !split.in_quotes)
+		else if (split.i == 0 && (ft_get_redir(input, split.i, &split) == 2) && !strchr(delimeter, input[split.i + 2]) && !split.in_quotes)
 			split.i = ft_appdoc_special(input, delimeter, &split);
+		else if (split.i > 0 && input[split.i] == '|' && (!strchr(delimeter, input[split.i - 1]) || !strchr(delimeter, input[split.i + 1])) && !split.in_quotes)//ignore if stand alone '|'
+			split.i = ft_pipe_special(input, delimeter, &split);
+		else if (split.i > 0 && (ft_get_redir(input, split.i, &split) == 2) && (!strchr(delimeter, input[split.i - 1]) || !strchr(delimeter, input[split.i + 2])) && !split.in_quotes)
+			split.i = ft_appdoc_special(input, delimeter, &split);
+		else if (split.i > 0 && (ft_get_redir(input, split.i, &split) == 1) && (!strchr(delimeter, input[split.i - 1]) || !strchr(delimeter, input[split.i + 1])) && (!strchr("<>", input[split.i + 1]) && !strchr("<>", input[split.i - 1])) && !split.in_quotes)//ignore the stand alone '<'
+			split.i = ft_redir_special(input, delimeter, &split);
 		else if ((strchr(delimeter, input[split.i]) || input[split.i] == 0) && !split.in_quotes)
 		{
 			if (save_word(&split, input, delimeter))
@@ -355,11 +395,12 @@ char	**ft_split_bash(char *input, char *delimeter)
 {
 	(void)ac;
 	//char *input = readline("$ ");
-	char input[] = "'a' 'ab''ba''a";//"'l''-'1|'file'2"
+	char input[] = "ls|append|sd >> df";//"'l''-'1|'file'2"
 	printf("%s\n", input);
     char **result = ft_split_bash(input, " \t");
 	if (!result)
 		return (0);
+	//return 0;
     int i = 0;
     while (result[i])
     {

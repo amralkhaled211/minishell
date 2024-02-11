@@ -1,0 +1,127 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    to_do.ber                                          :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2024/02/05 12:47:39 by aismaili          #+#    #+#              #
+#    Updated: 2024/02/11 22:11:47 by aismaili         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
+
+EXPANSION
+issue:
+export hello="echo        hello"
+bash will remove the spaces
+
+
+
+HANDLING OVERFLOW
+plan
+after split, we will check the amount of tokens and it should not be higher then MAX_TOKENS
+challange: how to check for MAX_ARGS,
+alternative 1: count splited and malloc accordingly 
+
+alternative 2: start with linked lists for the tokeen_simple
+
+
+
+EXIT VALUES
+plan
+store in a struct member
+save the status for
+- syntax ERRORS
+- waitpid status for externals and builtins
+- builtins only
+- signals
+- 
+
+
+expansion: need to be handled cases:
+c1r2p7% bash
+aismaili@c1r2p7:~/Circle_3/7feb_ver$ echo ~
+/nfs/homes/aismaili
+aismaili@c1r2p7:~/Circle_3/7feb_ver$ export sayhi="echo     hi"
+aismaili@c1r2p7:~/Circle_3/7feb_ver$ $sayhi
+hi
+aismaili@c1r2p7:~/Circle_3/7feb_ver$ export sayhi="echo     hi my friend $USER "
+aismaili@c1r2p7:~/Circle_3/7feb_ver$ $sayhi
+hi my friend aismaili
+
+solution: we need to split them
+
+
+works:
+we handle expansion inside of a variable:
+microshell $ export hi="echo $USER"
+microshell $ echo $hi
+echo aismaili
+microshell $ export hihi="this is an exported variable: $hi"
+microshell $ echo $hihi
+this is an exported variable: echo aismaili
+
+
+
+
+
+
+
+redirection cases:
+outfile:
+ls > first > last: both will be created, but ls output in redirected to last
+wc < first < last: both will be checked for their existance, but the last will be used as input for wc
+
+wrong cases
+>out wc <new: not parsing correct fixed
+pwd | wc: builtin piped into external, builtin and piping in general  fixed
+
+
+status:
+output redirection
+we open the necessary files, but do not redirect the output from stdout to l_output_fd
+
+input redirection
+
+
+infinite loop for nonexisting file: bash will just give error message and not wait
+wc < nonexisting
+
+case: here bash will not just take the last one, but print error message and not execute
+wc < ERR < ERRORS
+bash output: bash: ERR: No such file or directory
+minishell:
+
+this works even in sequence
+wc < ERRORS | wc
+so we actually take the input from the l_input_fd and pipe it correctly to the next command 
+
+
+
+aismaili@c2r3p1:~$ echo first > first
+aismaili@c2r3p1:~$ cat first
+first
+aismaili@c2r3p1:~$ echo last last last > last
+aismaili@c2r3p1:~$ cat last
+last last last
+aismaili@c2r3p1:~$ wc < first < last
+ 1  3 15
+aismaili@c2r3p1:~$ wc < fir < last
+bash: fir: No such file or directory
+aismaili@c2r3p1:~$ 
+
+
+
+solved:
+
+infinite loop for this sequence of commands: solved
+cat < file
+cat file
+cat < file
+
+we access the input file only on the first command entry: solved
+after the first it seems like we are accessing an empty file
+example: wc < file
+
+ls > new | wc > out: solved

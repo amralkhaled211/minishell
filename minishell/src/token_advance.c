@@ -6,7 +6,7 @@
 /*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/25 11:22:32 by aismaili          #+#    #+#             */
-/*   Updated: 2024/02/04 11:32:56 by aismaili         ###   ########.fr       */
+/*   Updated: 2024/02/11 17:33:33 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,76 +19,51 @@ flag for bash: $VAR: ambiguous redirect
 
 */
 
-void	init_command(t_shell *shell, t_token *token, t_command *command, int i)
+void	init_command(t_shell *shell, t_token *token, t_command *command, int i, int *b)
 {
 	static int	a;
-	static int	b;
+	//static int	b;
 
-	//invalid:
-	//pipe after redir - syntax error
-	//valid:
-	//expected redir, handled in simple - done
-	//expected cmd - handling in advance
 	if (i == 0 && shell->flags.cmd_flag == 0 && token[i].value && token[i].type == TOKEN_WORD)//take the expansion into consideration
 	{
 		command->cmd_name = ft_strdup(token[i].value);
 		if (!command->cmd_name)
-		{
 			free_after_malloc_fail(shell, -1, 3);
-		}
 		token[i].type = TOKEN_COMMAND;
 		shell->flags.cmd_flag = 1;//command_name found
 		a = 0;
-		b = 0;
+		//b = 0;
 	}
-	else if (i > 0 && shell->flags.cmd_flag == 0 && token[i].value && token[i].type == TOKEN_WORD && (token[i - 1].type == TOKEN_FILE || token[i - 1].type == TOKEN_PIPE))
+	else if (i > 0 && shell->flags.cmd_flag == 0 && token[i].value && token[i].type == TOKEN_WORD && (is_file(token[i - 1]) || token[i - 1].type == TOKEN_PIPE))
 	{
 		//init_cmd
-		//update token
 		command->cmd_name = ft_strdup(token[i].value);
 		if (!command->cmd_name)
-		{
 			free_after_malloc_fail(shell, -1, 3);
-		}
 		token[i].type = TOKEN_COMMAND;
-		//printf("");
 		shell->flags.cmd_flag = 1;
 		a = 0;
-		b = 0;
+		//b = 0;
 	}
-	//args after redir
-	else if (i > 0 && shell->flags.cmd_flag == 1 && token[i].value && token[i].type == TOKEN_WORD && (token[i - 1].type == TOKEN_FILE))
-	{
-		command->args[a] = ft_strdup(token[i].value);//array is null-terminated, before all were set to null
-		if (!command->cmd_name)
-		{
-			free_after_malloc_fail(shell, -1, 3);
-		}
-		token[i].type = TOKEN_ARG;
-		a++;
-	}
-	else if (i > 0 && token[i].type == TOKEN_WORD && (token[i - 1].type == TOKEN_COMMAND || token[i - 1].type == TOKEN_ARG || token[i - 1].type == TOKEN_FILE))
+	else if (i > 0 && shell->flags.cmd_flag == 1 && token[i].type == TOKEN_WORD && (token[i - 1].type == TOKEN_COMMAND || token[i - 1].type == TOKEN_ARG || is_file(token[i - 1])))
 	{
 		//arguments
 		command->args[a] = ft_strdup(token[i].value);//array is null-terminated, before all were set to null
-		if (!command->cmd_name)
-		{
+		if (!command->args[a])
 			free_after_malloc_fail(shell, -1, 3);
-		}
 		token[i].type = TOKEN_ARG;
 		a++;
 	}
-	else if (i > 0 && token[i].type == TOKEN_WORD && is_redir(token[i - 1])) //(token[i - 1].type == TOKEN_APPEND || token[i - 1].type == TOKEN_REDIRECT_IN || token[i - 1].type == TOKEN_REDIRECT_OUT || token[i - 1].type == TOKEN_HEREDOC)
+	else if (i > 0 && token[i].type == TOKEN_WORD && is_redir(token[i - 1]))
 	{
 		//redirections and heredoc
-		command->redirections[b].file = ft_strdup(token[i].value);
-		if (!command->cmd_name)
-		{
+		command->redirections[(*b)].file = ft_strdup(token[i].value);
+		if (!command->redirections[(*b)].file)
 			free_after_malloc_fail(shell, -1, 3);
-		}
 		token[i].type = token[i - 1].type + 1;
-		command->redirections[b].type = token[i - 1].type;
-		b++;
+		command->redirections[(*b)].type = token[i - 1].type;
+		command->redirections[(*b)].amb_redir = token[i].amb_redir;
+		(*b)++;
 	}
 	else if (token[i].type == TOKEN_END)//mark the end with end_of_cmd
 	{
@@ -96,6 +71,19 @@ void	init_command(t_shell *shell, t_token *token, t_command *command, int i)
 		command->args[a] = NULL;
 		command->end_of_cmd = true;
 	}
+}
+
+int	is_file(t_token token)
+{
+	if (token.type == IN_FILE)
+		return (1);
+	if (token.type == OUT_FILE)
+		return (2);
+	if (token.type == APPEND_FILE)
+		return (3);
+	if (token.type == TOKEN_EOF)
+		return (4);
+	return (0);
 }
 
 int	count_pipes(t_token *token)
@@ -124,48 +112,63 @@ void	default_command(t_command *command, int num_pipes)
 	while (i < (num_pipes + 2))
 	{
 		command[i].cmd_name = NULL;
+		command[i].path = NULL;
 		j = -1;
 		while (++j < MAX_ARGS)
 			command[i].args[j] = NULL;
+		command[i].cmd_args = NULL;
 		j = -1;
 		while (++j < MAX_REDIR)
 		{
-			command[i].redirections[j].type = -1;
+			command[i].redirections[j].type = TOKEN_DEFAULT;
+			command[i].redirections[j].input_fd = -1;
+			command[i].redirections[j].output_fd = -1;
 			command[i].redirections[j].file = NULL;
 		}
+		default_last_io(&command[i]);
+		command[i].no_file = false;
+		command[i].p_err_msg = false;
 		command[i].end_of_cmd = false;
-		command[i].pipe_send = false;
-		command[i].pipe_recieve = false;
-		//some are still left
 		i++;
 	}
 }
 
+void	default_last_io(t_command *command)
+{
+	command->last_in.file = NULL;
+	command->last_in.i_o_fd = -2;
+	command->last_out.file = NULL;
+	command->last_out.i_o_fd = -2;
+}
+
 int	token_adv(t_shell *shell, t_token *token)
 {
-	int	i;
-	int	j;
+	int			i;
+	int			j;
+	static int	b;
 
 	i = 0;
 	j = 0;
-	int num_pipes = count_pipes(token);
-	shell->command = malloc(sizeof(t_command) * (num_pipes + 2));
+	b = 0;
+	shell->num_pipes = count_pipes(token);
+	shell->command = malloc(sizeof(t_command) * (shell->num_pipes + 2));
 	if (!shell->command)
 		free_after_malloc_fail(shell, -1, 2);//free
-	default_command(shell->command, num_pipes);
+	default_command(shell->command, shell->num_pipes);
+	shell->flags.cmd_flag = 0;
 	while (token[i].value)
 	{
-		shell->flags.cmd_flag = 0;
-		init_command(shell, token, &shell->command[j], i);
-		if (token[i + 1].type == TOKEN_PIPE)// || token[i + 1].type == TOKEN_END)
+		init_command(shell, token, &shell->command[j], i, &b);
+		if (token[i + 1].type == TOKEN_PIPE)
 		{
 			j++;
 			shell->flags.cmd_flag = 0;//looking for cmd_name
+			b = 0;
 		}
 		i++;
 	}
 	j++;
-	init_command(shell, token, &shell->command[j], i);
+	init_command(shell, token, &shell->command[j], i, &b);
 	return (check_syntax(shell, shell->command, shell->token));
 }
 
@@ -173,9 +176,10 @@ int	token_adv(t_shell *shell, t_token *token)
 
 /*	syntax error comes before ambig error	*/
 
-void	check_ambig_redir(t_token *token)//return nothing, because the rest is executed
+/* void	check_ambig_redir(t_token *token)//return nothing, because the rest is executed
 {
-	int	i;
+	int		i;
+	char	*buffer;
 
 	i = 0;
 	while (token[i].type != TOKEN_END)
@@ -183,17 +187,20 @@ void	check_ambig_redir(t_token *token)//return nothing, because the rest is exec
 		//check ambiguous redirection flag & go on with the rest of cmds
 		if (token[i].amb_redir)//not a syntax error
 		{
+			get_command();
 			//exec part: no redir will happen for this command
 			//must pass NULL to next cmd
-			//
-			char buffer[100];
-			my_sprintf(buffer, "bash: %s: ambiguous redirect", token->value);//print once for each command
+			printf("token[%i].value: %s\n", i, token[i].value);
+			buffer = malloc(ft_strlen(token[i].value) + 50);
+			//char buffer[100];
+			my_sprintf(buffer, "minishell: %s: ambiguous redirect", token[i].value);//print once for each command
 			ft_putendl_fd(buffer, 2);//print one time for each command
+			free(buffer);
 			//perror(buffer);//better use for system fail messages
 		}
 		i++;
 	}
-}
+} */
 
 int	is_redir(t_token token)
 {
@@ -214,6 +221,7 @@ int	check_syntax(t_shell *shell, t_command *command, t_token *token)//return bec
 
 	i = 0;
 	(void)command;
+	(void)shell;
 	while (token[i].type != TOKEN_END)
 	{
 		//check pipe after redir || pipe after pipe
@@ -236,8 +244,40 @@ int	check_syntax(t_shell *shell, t_command *command, t_token *token)//return bec
 		}
 		i++;
 	}
-	check_ambig_redir(shell->token);//only if no synax error
+	check_ambig_redir(command);//only if no synax error
 	return (0);
+}
+
+void	check_ambig_redir(t_command *command)
+{
+	int		i;
+	int		j;
+	char	*buffer;
+
+	i = 0;
+	while (!command[i].end_of_cmd)
+	{
+		j = 0;
+		//printf("checking ambiguous redirection\ntype of redirection: %i\n", command[i].redirections[j].type);
+		while (command[i].redirections[j].type != TOKEN_DEFAULT)
+		{
+			//printf("inside loop, before if statement\n");
+			//printf("condition: command[%i].redirections[%i].amb_redir: %i\n", i, j, command[i].redirections[j].amb_redir);
+			if (command[i].redirections[j].amb_redir && !command[i].p_err_msg)
+			{
+				//printf("token[%i].value: %s\n", i, command[i].redirections[j].file);
+				buffer = malloc(ft_strlen(command[i].redirections[j].file) + 50);
+				my_sprintf(buffer, "minishell: %s: ambiguous redirect\n", command[i].redirections[j].file);//print once for each command
+				//ft_putendl_fd(buffer, 2);//print one time for each command
+				write(2, buffer, ft_strlen(buffer));
+				free(buffer);
+				command[i].p_err_msg = true;
+				//break;
+			}
+			j++;
+		}
+		i++;
+	}
 }
 
 bool	last_token_pipe(t_token *token)

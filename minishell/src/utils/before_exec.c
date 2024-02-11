@@ -6,7 +6,7 @@
 /*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/30 11:40:23 by aismaili          #+#    #+#             */
-/*   Updated: 2024/02/04 11:27:35 by aismaili         ###   ########.fr       */
+/*   Updated: 2024/02/10 12:37:35 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,7 @@ char	*handle_quotes(t_shell *shell, char *input)
 	i[1] = 0;
 	result = malloc(len + 1);
 	if (!result)
-		free_after_malloc_fail(shell, -1, 4);
+		free_after_malloc_fail(shell, 0, 4);
 	while (i[0] < len)
 	{
 		if (input[i[0]] == '\'' && !in_dquote)
@@ -81,6 +81,49 @@ char	*handle_quotes(t_shell *shell, char *input)
 	}
 	result[i[1]] = '\0';
 	return (result);
+}
+
+void	create_args(t_shell *shell, t_command *command)
+{
+	int	i;
+	int	j;
+
+	i = 0;
+	j = 0;
+	while (!command[i].end_of_cmd)
+	{
+		command[i].cmd_args = join_cmd_args(shell, &command[i], get_size_args(command[i].args));
+		i++;
+	}
+}
+
+char	**join_cmd_args(t_shell *shell, t_command *command, int n)
+{
+	char	**result;
+	int		i;
+	int		j;
+
+	i = 0;
+	j = 0;
+	result = malloc(sizeof(char *) * (n + 2));//2: including the cmd_name
+	if (!result)
+		free_after_malloc_fail(shell, 0, 4);
+	result[i] = command->cmd_name;
+	i++;
+	while (command->args[j])
+		result[i++] = command->args[j++];
+	result[i] = 0;
+	return (result);
+}
+
+int	get_size_args(char **args)
+{
+	int	i;
+
+	i = 0;
+	while (args[i])
+		i++;
+	return (i);
 }
 
 /*
