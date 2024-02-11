@@ -1,0 +1,26 @@
+total 244
+drwxr-xr-x 2 aismaili 2023_vienna  4096 Feb  7 17:59 24jan
+drwxr-xr-x 2 aismaili 2023_vienna  4096 Feb  7 18:07 bulit_in
+drwxr-xr-x 2 aismaili 2023_vienna  4096 Feb  7 18:07 env_expand
+-rw-r--r-- 1 aismaili 2023_vienna  2209 Feb  7 18:55 example_redir.c
+-rw-r--r-- 1 aismaili 2023_vienna  3198 Feb  7 18:28 handle_path.c
+-rw-r--r-- 1 aismaili 2023_vienna  9864 Feb  7 18:07 handle_path.o
+-rw-r--r-- 1 aismaili 2023_vienna  4621 Feb  7 18:16 microshell.c
+-rw-r--r-- 1 aismaili 2023_vienna  6524 Feb  7 17:59 microshell.h
+-rw-r--r-- 1 aismaili 2023_vienna 11672 Feb  7 18:07 microshell.o
+-rw-r--r-- 1 aismaili 2023_vienna     0 Feb  7 18:55 outfile.txt
+-rwxr-xr-x 1 aismaili 2023_vienna 16336 Feb  7 18:55 redir
+drwxr-xr-x 2 aismaili 2023_vienna  4096 Feb  7 17:59 seperate_tests
+-rw-r--r-- 1 aismaili 2023_vienna  2175 Feb  7 18:44 setup_pipe.c
+-rw-r--r-- 1 aismaili 2023_vienna  1926 Feb  7 17:59 shell_prep.c
+-rw-r--r-- 1 aismaili 2023_vienna  6920 Feb  7 18:07 shell_prep.o
+-rwxr-xr-x 1 aismaili 2023_vienna 57424 Feb  7 17:59 split
+-rw-r--r-- 1 aismaili 2023_vienna 11121 Feb  7 17:59 split_bash.c
+-rw-r--r-- 1 aismaili 2023_vienna 19320 Feb  7 18:07 split_bash.o
+drwxr-xr-x 2 aismaili 2023_vienna  4096 Feb  7 17:59 study
+drwxr-xr-x 2 aismaili 2023_vienna  4096 Feb  7 18:07 testing
+-rw-r--r-- 1 aismaili 2023_vienna  8535 Feb  7 17:59 token_advance.c
+-rw-r--r-- 1 aismaili 2023_vienna 13848 Feb  7 18:07 token_advance.o
+-rw-r--r-- 1 aismaili 2023_vienna  4084 Feb  7 17:59 token_simple.c
+-rw-r--r-- 1 aismaili 2023_vienna  9432 Feb  7 18:07 token_simple.o
+drwxr-xr-x 2 aismaili 2023_vienna  4096 Feb  7 18:07 utils
