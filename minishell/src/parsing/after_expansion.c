@@ -100,7 +100,7 @@ void	token_split_exp(t_shell *shell, t_token *token)
 		if (token[i].do_split)
 		{
 			errno = 0;
-			token[i].var_splited = ft_split_sec(token[i].value, " ");
+			token[i].var_splited = ft_split_sec(token[i].value, " \t");
 			if (!token[i].var_splited && errno != 0)
 				free_after_malloc_fail(shell, -1, 2);
 		}

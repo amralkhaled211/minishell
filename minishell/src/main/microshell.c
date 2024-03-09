@@ -82,7 +82,7 @@ int	check_input(t_shell *shell, char *input)
 
 int	parsing(t_shell *shell, char *input)
 {
-	shell->splited = ft_split_bash(input, " ");
+	shell->splited = ft_split_bash(input, " \t");
 	if (!shell->splited)
 	{
 		free_str_array(shell->env);

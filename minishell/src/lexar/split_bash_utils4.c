@@ -16,7 +16,7 @@ int	count_quote_part(char *s, t_split *split, int i, int *count)//5
 {
 	char	*delimeter;
 
-	delimeter = " ";
+	delimeter = " \t";
 	if ((s[i] == '"' || s[i] == '\'')
 		&& (!split->in_quotes || split->quote_char == s[i]))
 	{

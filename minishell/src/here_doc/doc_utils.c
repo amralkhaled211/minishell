@@ -92,7 +92,7 @@ char	*make_str_from_tab(char **tab, char *line)
 			return (free(line), free_str_array(tab), NULL);
 		if (tab[i + 1])
 		{
-			str = ft_strjoin_doc(str, " ", spac);
+			str = ft_strjoin_doc(str, " \t", spac);
 			if (!str)
 				return (free(line), free_str_array(tab), NULL);
 		}

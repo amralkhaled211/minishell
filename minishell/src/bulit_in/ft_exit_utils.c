@@ -27,7 +27,7 @@ bool	is_numeric(t_shell *shell, char *arg)
 	char	*tmp;
 
 	i = 0;
-	tmp = ft_strtrim(arg, " ");
+	tmp = ft_strtrim(arg, " \t");
 	if (!tmp)
 		free_after_malloc_fail(shell, -1, 5);
 	if (tmp && !tmp[i])

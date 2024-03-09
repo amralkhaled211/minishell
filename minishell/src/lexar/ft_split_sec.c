@@ -44,7 +44,7 @@ char	**ft_split_sec(char *s, char *deli)
 	split.result = malloc(sizeof(char *) * (count_words_sec(s, deli) + 3));
 	if (split.result == NULL)
 		return (NULL);
-	tmp = ft_strtrim(s, " ");
+	tmp = ft_strtrim(s, " \t");
 	if (!tmp)
 		return (free(split.result), NULL);
 	s = tmp;
