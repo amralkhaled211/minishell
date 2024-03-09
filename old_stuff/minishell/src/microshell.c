@@ -47,7 +47,7 @@ int main(int ac, char *av[], char *envp[])
 			continue ;
 		if (*input)
 			add_history(input);
-		shell.splited = ft_split_bash(input, " ");
+		shell.splited = ft_split_bash(input, " \t");
 		if (!shell.splited)
 			return (perror("shell.splited is NULL"), free_str_array(shell.env), 1);
 		free(input);
