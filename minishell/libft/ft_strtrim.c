@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   strtrim.c                                          :+:      :+:    :+:   */
+/*   ft_strtrim.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aismaili <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/08 16:16:49 by aismaili          #+#    #+#             */
-/*   Updated: 2023/09/08 16:29:01 by aismaili         ###   ########.fr       */
+/*   Updated: 2024/03/08 18:47:38 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,22 +31,21 @@ char	*ft_strtrim(char const *s1, char const *set)
 	size_t			len;
 	char			*trim;
 
-	while (*s1 && in_the_set(*s1, set))
+	if (!s1 || !set)
+		return (NULL);
+	while (s1 && *s1 && in_the_set(*s1, set))
 		s1++;
 	b = (unsigned char *)s1;
 	e = (unsigned char *)(s1 + ft_strlen(s1) - 1);
-	while (e >= b && in_the_set(*e, set))
+	while (e && b && e >= b && in_the_set(*e, set))
 		e--;
 	len = e - b + 1;
 	trim = malloc((len + 1) * sizeof(char));
 	if (trim == NULL)
 		return (NULL);
-	i = 0;
-	while (i < len)
-	{
+	i = -1;
+	while (++i < len)
 		trim[i] = b[i];
-		i++;
-	}
 	trim[len] = 0;
 	return (trim);
 }

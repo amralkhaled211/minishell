@@ -6,7 +6,7 @@
 /*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/19 11:37:20 by aismaili          #+#    #+#             */
-/*   Updated: 2024/02/11 12:25:45 by aismaili         ###   ########.fr       */
+/*   Updated: 2024/02/22 15:01:28 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,7 @@ char	**ft_split(char const *s, char c)
 	result[i] = 0;
 	return (result);
 }
+
 /*
 #include <stdio.h>
 

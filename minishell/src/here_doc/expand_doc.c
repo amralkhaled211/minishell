@@ -1,31 +1,84 @@
+/* ************************************************************************** */
+/*	                                                                          */
+/*                                                        :::      ::::::::   */
+/*   expand_doc.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amalkhal <amalkhal@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/03/06 13:58:39 by amalkhal          #+#    #+#             */
+/*   Updated: 2024/03/06 14:36:56 by amalkhal         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../microshell.h"
 
-static char	*make_str_from_tab(char **tab)
+char	*add_spaces(int spaces, char *str)
 {
-	char	*str;
-	char	*tmp;
+	char	*new;
 	int		i;
+	int		j;
 
-	i = -1;
-	while (tab[++i])
+	i = 0;
+	j = 0;
+	new = malloc(sizeof(char) * (ft_strlen(str) + spaces + 1));
+	while (spaces > 0)
 	{
-		tmp = str;
-		if (i == 0)
-			str = ft_strdup(tab[0]);
-		else
-		{
-			str = ft_strjoin(tmp, tab[i]);
-			free(tmp);
-		}
-		if (tab[i + 1])
-		{
-			tmp = str;
-			str = ft_strjoin(tmp, " ");
-			free(tmp);
-		}
+		new[i] = ' ';
+		i++;
+		spaces--;
 	}
-	free_str_array(tab);
-	return (str);
+	while (str[j])
+	{
+		new[i] = str[j];
+		i++;
+		j++;
+	}
+	new[i] = '\0';
+	free(str);
+	return (new);
+}
+
+int	count_first_spaces(char	*line)
+{
+	int	spaces;
+	int	j;
+
+	j = 0;
+	spaces = 0;
+	while (line[j] == ' ')
+	{
+		j++;
+		spaces++;
+	}
+	return (spaces);
+}
+
+int	count_spaces(char *line)
+{
+	static int	j;
+	int			spaces;
+
+	spaces = 0;
+	if (j == 0)
+	{
+		while (line[j] == ' ')
+			j++;
+	}
+	while (line[j])
+	{
+		if (line[j] == ' ')
+		{
+			while (line[j] == ' ')
+			{
+				spaces++;
+				j++;
+			}
+			break ;
+		}
+		else
+			j++;
+	}
+	return (spaces);
 }
 
 char	*doc_expand(t_shell *shell, char *line)
@@ -43,46 +96,31 @@ char	*doc_expand(t_shell *shell, char *line)
 		{
 			words[i] = var_expander_heredoc(shell, words[i]);
 			if (!words[i])
-				return (NULL);
+				return (free(line), NULL);
 		}
 		i++;
 	}
-	return (make_str_from_tab(words));
+	return (make_str_from_tab(words, line));
 }
 
-char	*var_expander_heredoc(t_shell *shell, char *str)
+char	*var_expander_heredoc(t_shell *shell, char	*str)
 {
 	int	i;
 
 	i = 0;
-
-	while (str[i])
+	while (str && str[i])
 	{
-		if (str[i] ==  '$'
-			&&  is_spertor(str[i + 1]) ==  false
-			&&  str[i + 1]  != '"'  &&  str[i + 1] != '\'')
+		if (str[i] == '$'
+			&& is_spertor(str[i + 1]) == false
+			&& str[i + 1] != '"' && str[i + 1] != '\'')
+		{
 			str = replace_str_heredoc(str,
 					valid_var(str + i, shell), i);
-		else
-			i++;
+			if (!str && errno != 0)
+				return (NULL);
+			i = -1;
+		}
+		i++;
 	}
-	return(str);
-}
-
-char	*replace_str_heredoc(char *str, char *var_value, int index)
-{
-	char	*tmp;
-
-	tmp = NULL;
-	if (var_value == NULL)
-		*str = '\0';
-	else
-	{
-		tmp = str;
-		str = delete_and_replace_for_doc(str, var_value, index);
-		free(tmp);
-	}
-	free(var_value);
 	return (str);
 }
-

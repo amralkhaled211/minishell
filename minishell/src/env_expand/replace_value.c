@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   replace_value.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
+/*   By: amalkhal <amalkhal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/31 14:38:14 by amalkhal          #+#    #+#             */
-/*   Updated: 2024/02/11 18:25:41 by aismaili         ###   ########.fr       */
+/*   Updated: 2024/03/05 15:42:20 by amalkhal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ char	*get_value_to_str(char *old_str, char *value, int len, int ind)//protect
 			copy_value(new, value, &j);
 			i = i + var_len(old_str + ind) + 1;
 			if (old_str[i] == '\0')
-				break;
+				break ;
 		}
 		new[j++] = old_str[i++];
 	}
@@ -51,18 +51,48 @@ char	*get_value_to_str(char *old_str, char *value, int len, int ind)//protect
 	return (new);
 }
 
-char	*delete_and_replace(t_token *token, char *value, char *str, int ind, int i)//protect
+char	*delete_and_replace(t_token *token, char *value, char *str, int ind)
 {
-	int	len;
-	char *new;
+	int		len;
+	char	*new;
 
+	errno = 0;
 	len = (ft_strlen(str) - var_len(str + ind) + ft_strlen(value));
-	new = get_value_to_str(str, value, len, ind);//
-	//printf("in DELETE and REPLACE: \nstr: %s\nvalue: %s\nnew: %s\nind: %i\nlen: %i\n", str, value, new, ind, len);
+	new = get_value_to_str(str, value, len, ind);
+	if (!new)
+		return (NULL);
 	if (token)
 	{
-		free(token[i].value);
-		token[i].value = new;
+		if (!range_quotes_two(token->value, ind))
+			token->do_split = true;
+		free(token->value);
+		token->value = new;
 	}
 	return (new);
+}
+
+bool	range_quotes_two(char *str, int j)
+{
+	int		i;
+	bool	in_squote;
+	bool	in_dquote;
+
+	i = -1;
+	in_squote = false;
+	in_dquote = false;
+	if (str[j] != '$')
+		return (true);
+	while (str[++i])
+	{
+		if (str[i] == '"' && !in_squote)
+			in_dquote = !in_dquote;
+		else if (str[i] == '\'' && !in_dquote)
+			in_squote = !in_squote;
+		else if (str[i] == '$' && i == j)
+		{
+			if (in_squote || in_dquote)
+				return (true);
+		}
+	}
+	return (false);
 }

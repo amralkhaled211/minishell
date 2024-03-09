@@ -6,7 +6,7 @@
 /*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/29 14:57:35 by amalkhal          #+#    #+#             */
-/*   Updated: 2024/02/11 18:22:10 by aismaili         ###   ########.fr       */
+/*   Updated: 2024/03/08 15:21:25 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,18 +19,28 @@ bool	is_spertor(char c)
 	return (false);
 }
 
- static bool handel_quotes(char *str)
+bool	range_quotes(char *str, int j)
 {
-	int	i;
+	int		i;
+	bool	in_squote;
+	bool	in_dquote;
 
-	i = 0;
-	while(str[i])
+	i = -1;
+	in_squote = false;
+	in_dquote = false;
+	if (str[j] != '$')
+		return (true);
+	while (str[++i])
 	{
-		if (str[i] == '\"')
-			return (false);
-		else if (str[i] == '\'')
-			return (true);
-		i++;
+		if (str[i] == '"' && !in_squote)
+			in_dquote = !in_dquote;
+		else if (str[i] == '\'' && !in_dquote)
+			in_squote = !in_squote;
+		else if (str[i] == '$' && i == j)
+		{
+			if (in_squote)
+				return (true);
+		}
 	}
 	return (false);
 }
@@ -41,30 +51,54 @@ void	expander(t_shell *shell, t_token *token)
 	int	j;
 
 	i = 0;
-	while(token[i].type != TOKEN_END && token[i].type != TOKEN_DEFAULT)//segfault with out the second condition, why here? and not at the if statement?
+	while (token[i].type != TOKEN_END && token[i].type != TOKEN_DEFAULT)
 	{
-		if(token[i].type == TOKEN_WORD)
+		if (token[i].type == TOKEN_WORD)
 		{
 			j = 0;
-			if (i > 0 && token[i].value[j] == '$' && is_redir(token[i - 1]) && !is_var_val(token[i].value + 1, shell))
+			if (i > 0 && token[i].value[j] == '$' && is_redir(token[i - 1])
+				&& !is_var_val(token[i].value + 1, shell))
 				token[i].amb_redir = true;
-			while (token[i].type != TOKEN_END && token[i].value[j] && token[i].amb_redir == false)
-			{
-				if(token[i].value[j] == '$' && is_spertor(token[i].value[j + 1]) == false &&
-					handel_quotes(token[i].value) == false && token[i].value[j + 1] != '"')
-				{
-					change_var_to_val(token, valid_var(token[i].value + j, shell), j, i);
-				}
-				j++;
-			}
+			expand_checker(shell, token, i);
 		}
 		i++;
 	}
 }
 
-/*
-PROTECTION
-STAGE 2
-already setup
-challange: destinguish between NULL for malloc fail and NULL for no Value
-*/
+void	expand_checker(t_shell *shell, t_token *token, int i)
+{
+	int	j;
+
+	j = 0;
+	while (token[i].value && token[i].type != TOKEN_END
+		&& token[i].value[j] && token[i].amb_redir == false)
+	{
+		if (token[i].value[j] == '$'
+			&& is_spertor(token[i].value[j + 1]) == false
+			&& range_quotes(token[i].value, j) == false
+			&& inside_dquote(shell, token[i].value, j) == false)
+		{
+			if (change_var_to_val(token,
+					valid_var(token[i].value + j, shell), j, i) == 1)
+			{
+				free_after_malloc_fail(shell, -1, 2);
+			}
+			j = -1;
+		}
+		j++;
+	}
+}
+
+char	*get_var_only(char *str)
+{
+	int		i;
+
+	i = 0;
+	while (str[i])
+	{
+		if (!ft_isalnum(str[i]))
+			break ;
+		i++;
+	}
+	return (ft_substr(str, 0, i));
+}

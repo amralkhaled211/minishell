@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   memmove.c                                          :+:      :+:    :+:   */
+/*   ft_memmove.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aismaili <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/06 10:49:59 by aismaili          #+#    #+#             */
-/*   Updated: 2023/09/06 11:39:55 by aismaili         ###   ########.fr       */
+/*   Updated: 2024/03/08 16:38:01 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ void	*ft_memmove(void *dest, const void *src, size_t n)
 	{
 		destination += n;
 		source += n;
-		while (n--)
+		while (source && destination && n--)
 			*(--destination) = *(--source);
 	}
 	return (dest);

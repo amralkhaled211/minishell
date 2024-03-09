@@ -55,8 +55,8 @@ char	*ft_strjoingnl(char *s1, char *s2)
 			return (NULL);
 		s1[0] = '\0';
 	}
-	if (!s1 || !s2)
-		return (NULL);
+	if (!s2)
+		return (free(s1), NULL);
 	ns = (char *)malloc(ft_strlengnl(s1) + ft_strlengnl(s2) + 1);
 	if (!ns)
 		return (free(s1), NULL);

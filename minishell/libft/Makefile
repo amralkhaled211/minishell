@@ -6,7 +6,7 @@
 #    By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/09/22 16:28:43 by aismaili          #+#    #+#              #
-#    Updated: 2023/12/14 21:59:11 by aismaili         ###   ########.fr        #
+#    Updated: 2024/02/19 16:10:46 by aismaili         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,7 +24,7 @@ SRCS =  ft_atoi.c ft_bzero.c ft_calloc.c ft_isalnum.c ft_isalpha.c ft_isascii.c 
 		ft_strlcat.c ft_strlcpy.c ft_strlen.c ft_strncmp.c ft_strnstr.c ft_strrchr.c ft_tolower.c \
 		ft_toupper.c ft_substr.c ft_strjoin.c ft_strtrim.c ft_strmapi.c ft_striteri.c ft_putchar_fd.c \
 		ft_putstr_fd.c ft_putendl_fd.c ft_putnbr_fd.c ft_itoa.c ft_split.c gnl/get_next_line.c \
-		gnl/get_next_line_utils.c
+		gnl/get_next_line_utils.c ft_strcmp.c
 
 #Build object files from .c files
 OBJS = $(SRCS:.c=.o)
