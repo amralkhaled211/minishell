@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_exit.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
+/*   By: amalkhal <amalkhal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/29 13:43:17 by aismaili          #+#    #+#             */
-/*   Updated: 2024/03/09 17:17:42 by aismaili         ###   ########.fr       */
+/*   Updated: 2024/03/12 12:55:46 by amalkhal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ int	ft_exit(t_shell *shell, char **args)
 	return (0);
 }
 
-void	plural_args(t_shell *shell, char **args)
+void	plural_args(t_shell *shell, char **args)//protect
 {
 	char	*buffer;
 	int		i;

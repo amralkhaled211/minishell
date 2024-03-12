@@ -6,7 +6,7 @@
 /*   By: amalkhal <amalkhal@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/08 15:22:27 by aismaili          #+#    #+#             */
-/*   Updated: 2024/03/11 13:08:56 by amalkhal         ###   ########.fr       */
+/*   Updated: 2024/03/12 13:06:13 by amalkhal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,7 @@ static char	*add_initial_spaces(int spaces, char *base)
 
 	result = add_spaces(spaces, base);
 	if (!result)
-		free(base);
+		return (NULL);
 	return (result);
 }
 

@@ -21,6 +21,8 @@ char	*add_spaces(int spaces, char *str)
 	i = 0;
 	j = 0;
 	new = malloc(sizeof(char) * (ft_strlen(str) + spaces + 1));
+	if (!new)
+		return (free(str), NULL);
 	while (spaces > 1)
 	{
 		new[i] = ' ';
