@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_exit.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amalkhal <amalkhal@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/29 13:43:17 by aismaili          #+#    #+#             */
-/*   Updated: 2024/03/12 12:55:46 by amalkhal         ###   ########.fr       */
+/*   Updated: 2024/03/14 12:03:29 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,13 +31,15 @@ int	ft_exit(t_shell *shell, char **args)
 	return (0);
 }
 
-void	plural_args(t_shell *shell, char **args)//protect
+void	plural_args(t_shell *shell, char **args)
 {
 	char	*buffer;
 	int		i;
 
 	i = 0;
 	buffer = malloc(ft_strlen(args[i]) + 45);
+	if (!buffer)
+		free_after_malloc_fail(shell, -1, 5);
 	if (is_numeric(shell, args[i]))
 	{
 		my_sprintf(buffer, "minishell: %s: too many arguments\n", "exit");
@@ -69,6 +71,8 @@ void	single_arg(t_shell *shell, char **args)
 	shell->exit_status = ft_atoi(args[i]);
 	converted = ft_itoa(shell->exit_status);
 	cmp_orig_conv(shell, args, original, converted);
+	free(original);
+	free(converted);
 	free_before_exit(shell);
 }
 
@@ -104,6 +108,8 @@ void	single_arg_sec(t_shell *shell, char **args)
 
 	i = 0;
 	buffer = malloc(ft_strlen(args[i]) + 55);
+	if (!buffer)
+		free_after_malloc_fail(shell, -1, 5);
 	my_sprintf(buffer, "minishell: exit: %s: numeric argument required\n",
 		args[i]);
 	write(2, buffer, ft_strlen(buffer));

@@ -6,7 +6,7 @@
 /*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/07 14:58:56 by aismaili          #+#    #+#             */
-/*   Updated: 2024/03/13 12:42:39 by aismaili         ###   ########.fr       */
+/*   Updated: 2024/03/14 14:09:12 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -393,10 +393,10 @@ void	file_error_handling(t_shell *shell, int **pfd, int i);
 void	mini_handle_exec(t_shell *shell, int **pfd, int i);
 int		is_directory(char *path);
 void	file_not_exec(t_shell *shell, int **pfd, int i);
-void	clean_exec_part(int **pfd, pid_t *child_pid, int num_pipes);
+void	clean_exec_part(int **pfd, pid_t *child_pid, int flag_free);
 void	is_a_dir(t_shell *shell, int **pfd, int i);
 void	main_exec_child(t_shell *shell, pid_t *child_pid, int **pfd, int i);
-void	close_after_fork(int **pfd, int i);
+void	close_after_fork(t_shell *shell, int **pfd, int i);
 
 //cleanup.c
 void	free_str_array(char **array);

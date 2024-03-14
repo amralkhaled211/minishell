@@ -6,16 +6,15 @@
 /*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 18:15:58 by aismaili          #+#    #+#             */
-/*   Updated: 2024/03/13 13:37:53 by aismaili         ###   ########.fr       */
+/*   Updated: 2024/03/14 18:12:57 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../microshell.h"
 #include <stdlib.h>
 
-static void	close_pfd(int **pfd, int num_pipes)
+static void	close_pfd(int **pfd)
 {
-	(void)num_pipes;
 	if (pfd[0][0] != -1)
 		close(pfd[0][0]);
 	if (pfd[0][1] != -1)
@@ -80,17 +79,18 @@ void	handle_execution(t_shell *shell, pid_t *child_pid, int **pfd, int i)
 		f = 1;
 	if (pipe(pfd[f]) == -1)
 		free_after_malloc_fail(shell, -1, 5);
+	signal(SIGPIPE, SIG_IGN);
 	child_pid[i] = fork();
 	if (child_pid[i] == -1)
 	{
-		clean_exec_part(pfd, child_pid, shell->num_pipes);
+		clean_exec_part(pfd, child_pid, true);
 		free_after_malloc_fail(shell, -1, 5);
 	}
 	else if (child_pid[i] == 0)
 	{
 		main_exec_child(shell, child_pid, pfd, i);	
 	}
-	close_after_fork(pfd, i);
+	close_after_fork(shell, pfd, i);
 }
 
 void	multi_cmd(t_shell *shell, pid_t *child_pid, int **pfd)
@@ -104,12 +104,15 @@ void	multi_cmd(t_shell *shell, pid_t *child_pid, int **pfd)
 	{
 		handle_execution(shell, child_pid, pfd, i);
 	}
-	close_pfd(pfd, shell->num_pipes);
+	close_pfd(pfd);
 	i = -1;
 	while (++i < shell->num_pipes + 1)
 	{
 		if (waitpid(child_pid[i], &status, 0) > 0)
 			shell->exit_status = WEXITSTATUS(status);
 	}
-	clean_exec_part(pfd, child_pid, shell->num_pipes);
+	free(pfd[0]);
+	free(pfd[1]);
+	free(pfd);
+	free(child_pid);
 }

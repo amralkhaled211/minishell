@@ -6,34 +6,44 @@
 /*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 17:02:05 by aismaili          #+#    #+#             */
-/*   Updated: 2024/03/13 12:14:35 by aismaili         ###   ########.fr       */
+/*   Updated: 2024/03/14 18:43:03 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../microshell.h"
+#include <signal.h>
 
-static void	clean_before_exec(pid_t *child_pid, int **pfd, int i)
+static void	clean_before_exec(t_shell *shell, pid_t *child_pid, int **pfd, int i)
 {
 	free(child_pid);
-	if (i % 2 == 0 && pfd[0][0] != -1)
+	if (i % 2 == 0 && pfd[0][0] != -1)//close unused read end, when we are in child one
 	{
 		close(pfd[0][0]);
 		pfd[0][0] = -1;
 	}
-	if (i % 2 == 0 && pfd[1][1] != -1)
+	if (i % 2 == 0 && pfd[1][1] != -1)//close unused write end, when we are in child one
 	{
 		close(pfd[1][1]);
 		pfd[1][1] = -1;
 	}
-	if (i % 2 != 0 && pfd[0][1] != -1)
+	if (i % 2 != 0 && pfd[1][0] != -1)//close unused read end, when we are in child two
+	{
+		close(pfd[1][0]);
+		pfd[1][0] = -1;
+	}
+	if (i % 2 != 0 && pfd[0][1] != -1)//close unused write end, when we are in child two
 	{
 		close(pfd[0][1]);
 		pfd[0][1] = -1;
 	}
-	if (i % 2 != 0 && pfd[1][0] != -1)
+	if (i == shell->num_pipes)
 	{
-		close(pfd[1][0]);
-		pfd[1][0] = -1;
+		if (pfd[0][1] != -1)
+			close(pfd[0][1]);
+		pfd[0][1] = -1;
+		if (pfd[1][1] != -1)
+			close(pfd[1][1]);
+		pfd[1][1] = -1;
 	}
 }
 
@@ -48,10 +58,11 @@ static void	dup_std_in(t_shell *shell, int **pfd, int i)
 	{
 		perror("dup2 fail (input)");
 		shell->exit_status = 1;
-		clean_exec_part(pfd, NULL, shell->num_pipes);
+		clean_exec_part(pfd, NULL, true);
 		free_before_exit(shell);
 	}
-	close(pfd[f][0]);
+	if (pfd[f][0] != -1)
+		close(pfd[f][0]);
 	pfd[f][0] = -1;
 }
 
@@ -66,16 +77,17 @@ static void	dup_std_out(t_shell *shell, int **pfd, int i)
 	{
 		perror("dup2 fail (output)");
 		shell->exit_status = 1;
-		clean_exec_part(pfd, NULL, shell->num_pipes);
+		clean_exec_part(pfd, NULL, true);
 		free_before_exit(shell);
 	}
-	close(pfd[f][1]);
+	if (pfd[f][1] != -1)
+		close(pfd[f][1]);
 	pfd[f][1] = -1;
 }
 
-void	main_exec_child(t_shell *shell, pid_t *child_pid, int **pfd, int i)
+void	main_exec_child(t_shell *shell, pid_t *child_pid, int **pfd, int i)//ls | echo hello
 {
-	clean_before_exec(child_pid, pfd, i);
+	clean_before_exec(shell, child_pid, pfd, i);//closing everything not needed
 	if (shell->command[i].last_in.file)
 		input_redir_handler(shell, pfd, i);
 	else if (i > 0)
@@ -90,7 +102,31 @@ void	main_exec_child(t_shell *shell, pid_t *child_pid, int **pfd, int i)
 	else if (access(shell->command[i].path, X_OK) != 0
 		&& !shell->command[i].is_built_in)
 		file_not_exec(shell, pfd, i);
+	clean_exec_part(pfd, NULL, true);
 	mini_handle_exec(shell, pfd, i);
+}
+
+void	close_all_fds(t_shell *shell)
+{
+	int	i;
+	int	j;
+
+	i = -1;
+	while (!shell->command[++i].end_of_cmd)
+	{
+		if (!shell->command[i].redirections)
+			continue ;
+		j = -1;
+		while (shell->command[i].redirections[++j].file)
+		{
+			if (shell->command[i].redirections[j].input_fd != -1)
+				close(shell->command[i].redirections[j].input_fd);
+			shell->command[i].redirections[j].input_fd = -1;
+			if (shell->command[i].redirections[j].output_fd != -1)
+				close(shell->command[i].redirections[j].output_fd);
+			shell->command[i].redirections[j].output_fd = -1;	
+		}
+	}
 }
 
 void	mini_handle_exec(t_shell *shell, int **pfd, int i)
@@ -99,20 +135,18 @@ void	mini_handle_exec(t_shell *shell, int **pfd, int i)
 	if (shell->command[i].is_built_in)
 	{
 		execute_built_in(shell, &shell->command[i]);
-		clean_exec_part(pfd, NULL, shell->num_pipes);
 		free_before_exit(shell);
 	}
 	if (shell->command[i].cmd_name && is_directory(shell->command[i].path))
 		is_a_dir(shell, pfd, i);
+	close_all_fds(shell);
 	if (!shell->command[i].is_built_in && shell->command[i].cmd_name)
 	{
+		signal(SIGPIPE, SIG_DFL);
 		if (execve(shell->command[i].path, shell->command[i].cmd_args,
 				shell->env) != 0)
 			perror("execve");
-		clean_exec_part(pfd, NULL, shell->num_pipes);
 		free_before_exit(shell);
 	}
-	clean_exec_part(pfd, NULL, shell->num_pipes);
 	free_before_exit(shell);
-	exit (0);
 }

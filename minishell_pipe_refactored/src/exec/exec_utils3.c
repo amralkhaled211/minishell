@@ -6,11 +6,12 @@
 /*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/07 14:46:14 by aismaili          #+#    #+#             */
-/*   Updated: 2024/03/13 12:15:53 by aismaili         ###   ########.fr       */
+/*   Updated: 2024/03/14 17:04:29 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../microshell.h"
+#include <unistd.h>
 
 static void	restore_std(t_shell *shell)
 {
@@ -68,8 +69,9 @@ int	prep_redir(t_shell *shell, t_command *command, int i)
 	return (0);
 }
 
-void	close_after_fork(int **pfd, int i)
+void	close_after_fork(t_shell *shell, int **pfd, int i)
 {
+	(void)shell;
 	if (i % 2 == 0 && pfd[0][1] != -1)
 	{
 		close(pfd[0][1]);
@@ -90,4 +92,10 @@ void	close_after_fork(int **pfd, int i)
 		close(pfd[1][1]);
 		pfd[1][1] = -1;
 	}
+	/* if (shell->command[i].last_in.i_o_fd != -1)
+		close(shell->command[i].last_in.i_o_fd);
+	shell->command[i].last_in.i_o_fd = -1;
+	if (shell->command[i].last_out.i_o_fd != -1)
+		close(shell->command[i].last_out.i_o_fd);
+	shell->command[i].last_out.i_o_fd = -1; */
 }

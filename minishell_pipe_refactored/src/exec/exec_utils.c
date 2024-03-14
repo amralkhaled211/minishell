@@ -6,7 +6,7 @@
 /*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 16:21:05 by aismaili          #+#    #+#             */
-/*   Updated: 2024/03/13 12:46:50 by aismaili         ###   ########.fr       */
+/*   Updated: 2024/03/14 13:21:41 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,9 +110,8 @@ int	is_directory(char *path)
 	return (S_ISDIR(statbuf.st_mode));
 }
 
-void	clean_exec_part(int **pfd, pid_t *child_pid, int num_pipes)
+void	clean_exec_part(int **pfd, pid_t *child_pid, int flag_free)
 {
-	(void)num_pipes;
 	if (pfd[0][0] != -1)
 		close(pfd[0][0]);
 	if (pfd[0][1] != -1)
@@ -121,8 +120,11 @@ void	clean_exec_part(int **pfd, pid_t *child_pid, int num_pipes)
 		close(pfd[1][0]);
 	if (pfd[1][1] != -1)
 		close(pfd[1][1]);
-	free(pfd[0]);
-	free(pfd[1]);
-	free(pfd);
-	free(child_pid);
+	if (flag_free)
+	{
+		free(pfd[0]);
+		free(pfd[1]);
+		free(pfd);
+		free(child_pid);
+	}
 }

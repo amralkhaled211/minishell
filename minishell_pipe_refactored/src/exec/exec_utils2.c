@@ -6,7 +6,7 @@
 /*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 17:04:48 by aismaili          #+#    #+#             */
-/*   Updated: 2024/03/13 11:57:36 by aismaili         ###   ########.fr       */
+/*   Updated: 2024/03/14 14:32:17 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,28 +14,41 @@
 
 void	input_redir_handler(t_shell *shell, int **pfd, int i)
 {
+	int	f;
+
+	f = 0;
+	if (i % 2 == 0)
+		f = 1;
 	if (shell->command[i].no_file || shell->command[i].p_err_msg)
 	{
 		if (g_exit == 0)
 			shell->exit_status = 1;
 		else
 			shell->exit_status = 0;
-		clean_exec_part(pfd, NULL, shell->num_pipes);
+		clean_exec_part(pfd, NULL, true);
 		free_before_exit(shell);
 	}
 	if (dup2(shell->command[i].last_in.i_o_fd, STDIN_FILENO) < 0)
 	{
-		clean_exec_part(pfd, NULL, shell->num_pipes);
+		clean_exec_part(pfd, NULL, true);
 		shell->exit_status = 1;
 		free_before_exit(shell);
 	}
 	close(shell->command[i].last_in.i_o_fd);
+	shell->command[i].last_in.i_o_fd = -1;
+	if (pfd[f][0] != -1)
+		close(pfd[f][0]);
+	pfd[f][0] = -1;
 }
 
 void	output_redir_handler(t_shell *shell, int **pfd, int i)
 {
 	char	*buffer;
+	int	f;
 
+	f = 0;
+	if (i % 2 != 0)
+		f = 1;
 	if (shell->command[i].no_file || shell->command[i].p_err_msg)
 	{
 		if (!shell->command[i].p_err_msg)
@@ -47,16 +60,20 @@ void	output_redir_handler(t_shell *shell, int **pfd, int i)
 			free(buffer);
 		}
 		shell->exit_status = 1;
-		clean_exec_part(pfd, NULL, shell->num_pipes);
+		clean_exec_part(pfd, NULL, true);
 		free_before_exit(shell);
 	}
 	if (dup2(shell->command[i].last_out.i_o_fd, STDOUT_FILENO) < 0)
 	{
 		shell->exit_status = 1;
-		clean_exec_part(pfd, NULL, shell->num_pipes);
+		clean_exec_part(pfd, NULL, true);
 		free_before_exit(shell);
 	}
 	close(shell->command[i].last_out.i_o_fd);
+	shell->command[i].last_out.i_o_fd = -1;
+	if (pfd[f][1] != -1)
+		close(pfd[f][1]);
+	pfd[f][1] = -1;
 }
 
 void	file_error_handling(t_shell *shell, int **pfd, int i)
@@ -64,7 +81,7 @@ void	file_error_handling(t_shell *shell, int **pfd, int i)
 	char	*buffer;
 
 	shell->exit_status = 1;
-	clean_exec_part(pfd, NULL, shell->num_pipes);
+	clean_exec_part(pfd, NULL, true);
 	if (!shell->command[i].path)
 	{
 		buffer = malloc(ft_strlen(shell->command[i].cmd_name) + 46);
@@ -99,7 +116,7 @@ void	file_not_exec(t_shell *shell, int **pfd, int i)
 	write(2, buffer, ft_strlen(buffer));
 	free(buffer);
 	shell->exit_status = 126;
-	clean_exec_part(pfd, NULL, shell->num_pipes);
+	clean_exec_part(pfd, NULL, true);
 	free_before_exit(shell);
 }
 

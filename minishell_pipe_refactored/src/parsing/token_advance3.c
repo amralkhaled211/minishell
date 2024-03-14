@@ -6,7 +6,7 @@
 /*   By: aismaili <aismaili@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/05 14:04:00 by aismaili          #+#    #+#             */
-/*   Updated: 2024/03/08 17:17:13 by aismaili         ###   ########.fr       */
+/*   Updated: 2024/03/14 14:26:49 by aismaili         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ void	default_cmd_flags(t_command *command)
 void	default_last_io(t_command *command)
 {
 	command->last_in.file = NULL;
-	command->last_in.i_o_fd = -2;
+	command->last_in.i_o_fd = -1;
 	command->last_out.file = NULL;
-	command->last_out.i_o_fd = -2;
+	command->last_out.i_o_fd = -1;
 }
