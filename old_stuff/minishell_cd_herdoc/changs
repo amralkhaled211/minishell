@@ -1,5 +1,0 @@
-I added the cd and fixed the heredoc 
-
-I added extra stuff to the structure for the cd function, i  put next to them  a comment for every  change i did. 
-
-i added int_dir in the to top of the microshell.c  it a major funtion for  my cd function

@@ -1,8 +1,0 @@
-*
-!**/
-!*.c
-!*.h
-!Makefile
-!*.txt
-!*.supp
-!.gitignore
