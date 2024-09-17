@@ -24,7 +24,7 @@ Minishell is a simple Unix shell that mimics the behavior of a standard shell. I
 2. **Compile the project:**
    ```bash
    make
-3. **Run the game:**
+3. **Run the app:**
    ```bash
    ./minishell
    
